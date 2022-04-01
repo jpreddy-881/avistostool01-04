@@ -17,6 +17,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 import shutil
 import os
+from urllib.parse import quote 
+from flask_migrate import Migrate
  
 global name
 
@@ -24,11 +26,12 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "Thisissupposedtobesecret!"
 app.config[
     "SQLALCHEMY_DATABASE_URI"
-] = "mysql+pymysql://jpr@avistosdb123:%s@avistosdb123.mysql.database.azure.com/avistos" % quote('Prakash@881')
+] = "mysql+pymysql://jpreddy@jpr123:%s@jpr123.mysql.database.azure.com/avistos" % quote('Prakash@881')
 
 bootstrap = Bootstrap(app)
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -92,7 +95,7 @@ def login():
             # if user.password == form.password.data:
             #     return redirect(url_for('dashboard'))
 
-            if check_password_hash(user.password, form.password.data):
+            if (user.password, form.password.data):
                 login_user(user, remember=form.remember.data)
                 return redirect(url_for("dashboard"))
 
@@ -106,13 +109,14 @@ def signup():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        hashed_password = generate_password_hash(form.password.data, method="sha256")
+        #hashed_password = generate_password_hash(form.password.data, method="sha256")
         new_user = User(
             username=form.username.data,
             email=form.email.data,
             role=form.role.data,
             client=form.client.data,
-            password=hashed_password,
+            password=form.password.data
+            #hashed_password,
         )
         db.session.add(new_user)
         db.session.commit()
